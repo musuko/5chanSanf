@@ -91,7 +91,7 @@ foreach ($data as $value) {
                 $thread = str_replace( $pick, "sanf_read.php#", $thread);   // $thread内の$pickをsanf_read.php#に置き換える
                 }
                 echo '<a id="' . $j . '">' . $j . '</a>';
-                echo '<form action="sanf_read.php#" method="get">';
+                echo '<form action="index.php#" method="get">';
                 echo '<input type="text" name="name" value="' . $id . '" style="border:none;">';
                 echo '<input type="hidden" name="num" value="' . $j . '">';
                 echo '<button type="submit" name="button" value="del" style="background-color:white; border:solid gray 1px;border-radius:50%;">削除</button>';
