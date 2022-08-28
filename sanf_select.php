@@ -56,7 +56,7 @@
         $num = mb_substr($line, 17, 11);   //サンフレッチェ広島の文字がある行から、スレ番号のみ抽出
 // var_dump($top.$num);  echo "<br>";
             // echo '<form method ="post">';
-            echo '<a href="'.$top.$num.'" style="width:900px; size=80; font-family:メイリオ; font-size: 20px;"> ' . $line . '</p>';
+            echo '<p><a href="'.$top.$num.'" style="width:900px; size=80; font-family:メイリオ; font-size: 20px;"> ' . $line . '</a></p>';
 
             // echo '<input type="text" name="list" style="width:900px; size=80; font-family:メイリオ; font-size: 20px;" 
             // value="' . $line . '" >';

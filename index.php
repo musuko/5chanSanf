@@ -11,6 +11,7 @@ $name = isset($name) ? $name . "\n" : "";
 if (isset($num)) {
     if ($button === "del") {
         echo $num . "を削除しました";
+        $num -= 1;
 
     } elseif ($button === "over") {
         file_put_contents("last.txt", $num);
@@ -22,7 +23,7 @@ echo "<br> \n";
 //削除した行、読了の行($num)のひとつ前にジャンプ。削除した行にジャンプできないのでひとつ前にする。
 //$numが1より大きい場合。先頭行に表示。
 if ($num > 1) {
-    echo '<a href="#' . ($num - 1) . '">ID = #' . ($num - 1) . 'へジャンプ</a>';
+    echo '<a href="#' . ($num) . '">ID = #' . ($num) . 'へジャンプ</a>';
     $num_mem = $num;
 }
 
