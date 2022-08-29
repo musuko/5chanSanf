@@ -89,7 +89,7 @@ foreach ($data as $value) {
                 $pos = strpos($thread, "../test/read.cgi/soccer/"); //引用リンク(>6など)が、スレ内の何文字目に存在するかを$posに代入
                 if ($pos !== false) {   //引用リンクが存在する場合、
                 $pick = substr($thread, $pos, 35);  //リンク先のフォルダを修正  $thread内の$pos文字目の35文字を$pickとする
-                $thread = str_replace( $pick, "sanf_read.php#", $thread);   // $thread内の$pickをsanf_read.php#に置き換える
+                $thread = str_replace( $pick, "index.php#", $thread);   // $thread内の$pickをindex.php#に置き換える
                 }
                 echo '<a id="' . $j . '">' . $j . '</a>';
                 echo '<form action="index.php#" method="get">';
