@@ -4,7 +4,7 @@ require "sanf_select.php";
 // 不快なスレッドのIDを非表示にする。
 $name = filter_input(INPUT_GET, "name");
 $num = filter_input(INPUT_GET, "num");
-$num = isset($num) ? $num: file_get_contents('last.txt');
+$num = isset($num) ? $num : file_get_contents('last.txt');
 $button = filter_input(INPUT_GET, "button");
 $name = isset($name) ? $name . "\n" : "";
 
@@ -12,10 +12,10 @@ if (isset($num)) {
     if ($button === "del") {
         echo $num . "を削除しました";
         $num -= 1;
-
     } elseif ($button === "over") {
         file_put_contents("last.txt", $num);
-        echo $num.'まで読んだ';echo '<br>';
+        echo $num . 'まで読んだ';
+        echo '<br>';
         $name = "";
     }
 }
@@ -32,20 +32,21 @@ file_put_contents("./del.txt", $name, FILE_APPEND);
 
 $file = fopen("./sanf.html", "r");
 $i = 0;
-while ($i <= 7) { //!feof($file)と同じ（falseの間続けますよ）の意味
+while ($i <= 3) { //!feof($file)と同じ（falseの間続けますよ）の意味
     // while (feof($file) === false) { //!feof($file)と同じ（falseの間続けますよ）の意味
     $line = trim(fgets($file));
-    if ($i === 7) {
+    // var_dump($line);
+    if ($i === 3) {
         $line = mb_convert_encoding($line, "utf-8", "sjis"); // シフトJISからUTF-8に変換
         // var_dump($line);
 
 
         // こちらはHTMLのまま
         $line = mb_strstr($line, '★ULA版★', false);   // 後の部分の文字列を抜き出す
+        // var_dump($line);
         $line = mb_strstr($line, '/ul>', false);   // 後の部分の文字列を抜き出す
         $line = mb_strstr($line, 'lass="thread">', false);   // 後の部分の文字列を抜き出す
         $line = mb_substr($line, 14);
-        // var_dump ($line);
         $line = mb_strstr($line, '前100</a>', true);   // 前の部分の文字列を抜き出す
         // var_dump (htmlspecialchars($line, ENT_QUOTES, 'utf-8'));
         //trueを指定した場合、指定した文字列より前の文字列を取得します。指定しない場合（false）、指定した文字列以降の文字列を取得します。
@@ -76,7 +77,7 @@ foreach ($data as $value) {
         $len = mb_strlen($thread);
         $thread = mb_substr($thread, 0, $len - 1);
 
-        
+
         if ($thread !== $thread_pre) {  //ひとつ前のスレとダブりがなければ、
             foreach ($name as $row) {   //このIDがNGかどうか確認する。まずNG IDを配列にする
                 $row = trim($row);
@@ -88,8 +89,8 @@ foreach ($data as $value) {
             if ($del_sw !== 1) {     //NG IDと一致しない場合
                 $pos = strpos($thread, "../test/read.cgi/soccer/"); //引用リンク(>6など)が、スレ内の何文字目に存在するかを$posに代入
                 if ($pos !== false) {   //引用リンクが存在する場合、
-                $pick = substr($thread, $pos, 35);  //リンク先のフォルダを修正  $thread内の$pos文字目の35文字を$pickとする
-                $thread = str_replace( $pick, "index.php#", $thread);   // $thread内の$pickをindex.php#に置き換える
+                    $pick = substr($thread, $pos, 35);  //リンク先のフォルダを修正  $thread内の$pos文字目の35文字を$pickとする
+                    $thread = str_replace($pick, "index.php#", $thread);   // $thread内の$pickをindex.php#に置き換える
                 }
                 echo '<a id="' . $j . '">' . $j . '</a>';
                 echo '<form action="index.php#" method="get">';
