@@ -32,12 +32,13 @@ file_put_contents("./del.txt", $name, FILE_APPEND);
 
 $file = fopen("./sanf.html", "r");
 $i = 1;
-while ($i <= 7) { //!feof($file)と同じ（falseの間続けますよ）の意味
+$total_lines= 6;    //読み込む行数
+while ($i <= $total_lines) { //!feof($file)と同じ（falseの間続けますよ）の意味
     // while (feof($file) === false) { //!feof($file)と同じ（falseの間続けますよ）の意味
     $line = trim(fgets($file));
     //var_dump($line);
 
-    if ($i === 7) {
+    if ($i === $total_lines) {
         $line = mb_convert_encoding($line, "utf-8", "sjis"); // シフトJISからUTF-8に変換
         // こちらはHTMLのまま
         $line = mb_strstr($line, '★ULA版★', false);   // 後の部分の文字列を抜き出す
