@@ -27,7 +27,7 @@ echo "<br> \n";
 // htmlを読み込む
 $file = fopen("./sanf.html", "r");
 $i = 1;
-$total_lines= 10;    //$total_linesは、htmlの中で、threadが書き込まれている行。
+$total_lines= 1452;    //$total_linesは、htmlの中で、threadが書き込まれている行。
 while ($i <= $total_lines) { //!feof($file)と同じ（falseの間続けますよ）の意味
     // while (feof($file) === false) { //!feof($file)と同じ（falseの間続けますよ）の意味
     $line = trim(fgets($file));
@@ -87,8 +87,8 @@ foreach ($data as $value) {
         if ($del_sw[$j] !== 1 && $j <= $num) {    //表示可能かつボタンを押したthread番号以下の場合
             $num_jump = $j;   //ジャンプ先のthread番号
         }
-    }
         $jmax=$j;    //読み込みthread数
+    }
     $j++;
 }
 
@@ -103,7 +103,7 @@ if ($num > 1) {
 
 //NGと重複を除いたthreadを表示する
 $thread[0] = "";
-for ($j=1; $j<=$jmax; $j++){
+for ($j=1; $j<=$jmax; ++$j){
 
             if ($del_sw[$j] !== 1) {     //NG IDと一致しない場合
                 if ($thread[$j] !== $thread[$j-1]) {    //重複threadではない場合
@@ -114,11 +114,11 @@ for ($j=1; $j<=$jmax; $j++){
                     }
 //実際に表示するthread                
                 echo '<a id="' . $j . '">' . $j . '</a>';
-                echo '<form action="index.php#" method="get">';
-                echo '<input type="text" name="name" value="' . $id[$j] . '" style="border:none;">';
-                echo '<input type="hidden" name="num" value="' . $j . '">';
-                echo '<button type="submit" name="button" value="del" style="background-color:white; border:solid gray 1px;border-radius:50%;">削除</button>';
-                echo '<button type="submit" name="button" value="over" style="background-color:white; border:solid gray 1px;border-radius:50%;">読了</button>';
+                echo '<form action="index.php#" method="get">';     //ボタンを押したら、index.php#にジャンプする。
+                echo '<input type="text" name="name" value="' . $id[$j] . '" style="border:none;">';    //スレッド記入者id
+                echo '<input type="hidden" name="num" value="' . $j . '">';                             //スレッド番号
+                echo '<button type="submit" name="button" value="del" style="background-color:white; border:solid gray 1px;border-radius:50%;">削除</button>';  //削除ボタン
+                echo '<button type="submit" name="button" value="over" style="background-color:white; border:solid gray 1px;border-radius:50%;">読了</button>';    //読了ボタン
                 echo '</form>';
 
                 echo '<p style=" font-family:メイリオ; font-size: 20px; background: azure";>' . $thread[$j] . '</p>';
@@ -129,4 +129,8 @@ for ($j=1; $j<=$jmax; $j++){
     
 
 }
-// require "sanf_select.php";
+
+//ID削除後、先頭行から削除付近行にジャンプする
+    if ($button === "del") {    //削除ボタンを押した場合
+            echo '<a href="index.php?#'. $num_jump. '">aaaaaa</a>';
+        }
