@@ -31,50 +31,47 @@ $total_lines= 1452;    //$total_linesは、htmlの中で、threadが書き込ま
 while ($i <= $total_lines) { //!feof($file)と同じ（falseの間続けますよ）の意味
     // while (feof($file) === false) { //!feof($file)と同じ（falseの間続けますよ）の意味
     $line = trim(fgets($file));
-    //var_dump($line);
-//thread行の不要部分を取り除く
+    $line = mb_convert_encoding($line, "utf-8", "sjis"); // シフトJISからUTF-8に変換
+    //thread行の不要部分を取り除く
     if ($i === $total_lines) {
-        $line = mb_convert_encoding($line, "utf-8", "sjis"); // シフトJISからUTF-8に変換
-        // こちらはHTMLのまま
-        $line = mb_strstr($line, '★ULA版★', false);   // 後の部分の文字列を抜き出す
-        // var_dump($line);
-        $line = mb_strstr($line, '/ul>', false);   // 後の部分の文字列を抜き出す
-        $line = mb_strstr($line, 'lass="thread">', false);   // 後の部分の文字列を抜き出す
-        $line = mb_substr($line, 14);
-        $line = mb_strstr($line, '前100</a>', true);   // 前の部分の文字列を抜き出す
-        // var_dump (htmlspecialchars($line, ENT_QUOTES, 'utf-8'));
+        $line = mb_strstr($line, '});</script>', false);   // 指定文字より後の部分の文字列を抜き出す
+        $line = mb_substr($line, 12);       //指定文字数を先頭から取り除く
+        $line = mb_strstr($line, '<div class="navmenu">', true);   // 指定文字より前の部分の文字列を抜き出す
         //trueを指定した場合、指定した文字列より前の文字列を取得します。指定しない場合（false）、指定した文字列以降の文字列を取得します。
     }
     $i++;
 }
+// echo $i."piyo".($line)."pao";echo '<br>';
 fclose($file);
 
 
 //thread行の前後不要部分を取り除く
 // $data = explode("name", htmlspecialchars($line, ENT_QUOTES, 'utf-8'));
-$data = explode('class="name">', $line);    //threadが書き込まれているテキストを、各threadの配列にする。
+
+$data = explode('</section></article>', $line);    //threadが書き込まれているテキストを、各threadの配列にする。$data[0]は0002スレの情報
 
 // 配列に、thread, id, 表示可否情報を収める
-$j = 0;
+$j = 2;
 $num_jump = 1;  //ボタンを押した後のジャンプ先、初期値設定
-$thread[0] = "";
-$id[0] = "";
+$thread[1] = "";
+$id[1] = "";
 foreach ($data as $value) {
-    // echo $j; echo '<br>';
+    // echo $j. '<br>'; echo $value. '<br>';
+
     $del_sw[$j] = 0;    // 0: NG IDではない 1:NG IDである
-    if ($j > 0 && $j < 1001) {
+    if ($j < 1001) {
+        $id[$j] = mb_strstr($value, '" data-id="', true);     // 指定文字前の部分の文字列を抜き出す
+        $id[$j] = mb_strstr($id[$j], '"ID:', false);  // 指定文字後の部分の文字列を抜き出す
+        $id[$j] = mb_substr($id[$j], 4);     //idを抽出する。これが最終id
+        // echo htmlspecialchars($id[$j]); echo '<br>'; echo '<br>';
 
-        // var_dump($value); echo '<br>'; echo '<br>';
-        // echo '<br>';
-        $id[$j] = mb_strstr($value, "uid", false);  // 後の部分の文字列を抜き出す
-        $id[$j] = mb_strstr($id[$j], "span", true);     // 前の部分の文字列を抜き出す
-        $id[$j] = mb_substr($id[$j], 8, 9);     //idを抽出する。これが最終id
-
-        $thread[$j] = mb_strstr($value, "escaped", false);  // 後の部分の文字列を抜き出す
-        $thread[$j] = mb_substr($thread[$j], 9);    //9文字以降のthreadを抽出する
-        $thread[$j] = mb_strstr($thread[$j], "/span", true);    // 前の部分の文字列を抜き出す
-        $len = mb_strlen($thread[$j]);
-        $thread[$j] = mb_substr($thread[$j], 0, $len - 1);      //最後の1文字を取り除く。これが最終thread
+        $thread[$j] = mb_strstr($value, 'post-content">', false);  // 指定文字後の部分の文字列を抜き出す
+        $thread[$j] = mb_substr($thread[$j], 15);    //指定文字数以降のthreadを抽出する
+        // echo htmlspecialchars($thread[$j]); echo '<br>'; echo '<br>';
+        // $len = mb_strlen($thread[$j]);
+        // $thread[$j] = mb_substr($thread[$j], 0, $len - 1);      //最後の1文字を取り除く。これが最終thread
+        
+        // echo $j, $id[$j], $thread[$j]; echo '<br>';
 
 //threadをNG idを除き表示する
         $ng_name = file("./del.txt");  //NG IDを読み込む
@@ -84,7 +81,7 @@ foreach ($data as $value) {
                 $del_sw[$j] = 1;        //NG IDと一致した場合、$del_swを1にし、表示不可とする。
             }
         }
-        if ($del_sw[$j] !== 1 && $j <= $num) {    //表示可能かつボタンを押したthread番号以下の場合
+        if ($del_sw[$j] !== 1 && $j <= $num) {    //表示可能かつ削除ボタンを押したthread番号以下の場合
             $num_jump = $j;   //ジャンプ先のthread番号
         }
         $jmax=$j;    //読み込みthread数
@@ -102,18 +99,20 @@ if ($num > 1) {
 
 
 //NGと重複を除いたthreadを表示する
-$thread[0] = "";
-for ($j=1; $j<=$jmax; ++$j){
+// $thread[0] = "";
+for ($j=2; $j<=$jmax; ++$j){
 
             if ($del_sw[$j] !== 1) {     //NG IDと一致しない場合
                 if ($thread[$j] !== $thread[$j-1]) {    //重複threadではない場合
+                    // echo $j, $thread[$j];
                     $pos = strpos($thread[$j], "../test/read.cgi/soccer/"); //引用リンク(>6など)が、スレ内の何文字目に存在するかを$posに代入
                     if ($pos !== false) {   //引用リンクが存在する場合、
                         $pick = substr($thread[$j], $pos, 35);  //リンク先のフォルダを修正  $thread[$j]内の$pos文字目の35文字を$pickとする
                         $thread[$j] = str_replace($pick, "index.php#", $thread[$j]);   // $thread[$j]内の$pickをindex.php#に置き換える
                     }
 //実際に表示するthread                
-                echo '<a id="' . $j . '">' . $j . '</a>';
+                // echo  $j;
+                echo '<a id="' . $j . '">' . $j . '</a>';   //誤記に見えて意味がある。この番号のスレにジャンプするために使用。
                 echo '<form action="index.php#" method="get">';     //ボタンを押したら、index.php#にジャンプする。
                 echo '<input type="text" name="name" value="' . $id[$j] . '" style="border:none;">';    //スレッド記入者id
                 echo '<input type="hidden" name="num" value="' . $j . '">';                             //スレッド番号
@@ -129,8 +128,3 @@ for ($j=1; $j<=$jmax; ++$j){
     
 
 }
-
-//ID削除後、先頭行から削除付近行にジャンプする
-    if ($button === "del") {    //削除ボタンを押した場合
-            echo '<a href="index.php?#'. $num_jump. '">aaaaaa</a>';
-        }
