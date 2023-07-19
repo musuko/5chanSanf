@@ -55,11 +55,11 @@ $j = 2;
 $num_jump = 1;  //ボタンを押した後のジャンプ先、初期値設定
 $thread[1] = "";
 $id[1] = "";
-foreach ($data as $value) { //$data[2] thread idが2
+foreach ($data as $value) { //$data[2] thread idが2。$dataのexplodeで一行多くなる。
     // echo $j. '<br>'; echo htmlspecialchars($value). '<br>';
 
     $del_sw[$j] = 0;    // 0: NG IDではない 1:NG IDである
-    if ($j < 1001) {
+    if ($j < 1002) {
         $id[$j] = mb_strstr($value, '" data-id="', true);     // 指定文字前の部分の文字列を抜き出す
         $id[$j] = mb_strstr($id[$j], '"ID:', false);  // 指定文字後の部分の文字列を抜き出す
         $id[$j] = mb_substr($id[$j], 4);     //idを抽出する。これが最終id
@@ -73,7 +73,7 @@ foreach ($data as $value) { //$data[2] thread idが2
         
         // echo $j, $id[$j], $thread[$j]; echo '<br>';
 
- //threadをNG id,重複threadを除き表示する
+        //threadをNG id,重複threadを除き表示する
         $ng_name = file("./del.txt");  //NG IDを読み込む
         foreach ($ng_name as $row) {   //このIDがNGかどうか確認する。まずNG IDを配列にする
             $row = trim($row);
@@ -87,7 +87,8 @@ foreach ($data as $value) { //$data[2] thread idが2
         if ($del_sw[$j] !== 1 && $j <= $num) {    //表示可能かつ削除ボタンを押したthread番号以下の場合
             $num_jump = $j;   //ジャンプ先のthread番号
         }
-        $jmax=$j-1;    //読み込みthread数。$dataのexplodeで一行余計になるので、減らす。
+        $jmax=$j-1;    //読み込みthread数。
+        // echo $j." ".$del_sw[$j]." ".$id[$j]." ".$thread[$j];echo "<br>";
     }
     $j++;
 }
@@ -106,7 +107,6 @@ if ($num > 1) {
 for ($j=2; $j<=$jmax; ++$j){
     
     if ($del_sw[$j] !== 1) {     //NG IDと一致せず、重複スレではない場合
-        // echo $j." ".$del_sw[$j]." ".$id[$j]." ".$thread[$j];echo "<br>";
                     $pos = strpos($thread[$j], "../test/read.cgi/soccer/"); //引用リンク(>6など)が、スレ内の何文字目に存在するかを$posに代入
                     if ($pos !== false) {   //引用リンクが存在する場合、
                         $pick = substr($thread[$j], $pos, 35);  //リンク先のフォルダを修正  $thread[$j]内の$pos文字目の35文字を$pickとする
