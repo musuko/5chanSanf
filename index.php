@@ -7,6 +7,8 @@ require "sanf_select.php";
 //タイトル一覧の次に、thread番号と、削除ボタンや読了ボタンを押したことを出力する
 $name = filter_input(INPUT_GET, "name");    //id
 $name = isset($name) ? $name . "\n" : "";   //id表示後、改行する。起動直後、nameが存在しないので、""を定義しておく。
+$ipadress = filter_input(INPUT_GET, "ip");    //ip
+$ipadress = isset($ipadress) ? $ipadress . "\n" : "";   //ip表示後、改行する。起動直後、ipが存在しないので、""を定義しておく。
 $num = filter_input(INPUT_GET, "num");  //threadの番号(前回の読了番号、今回の読了番号、削除番号)
 $num = isset($num) ? $num : file_get_contents('last.txt');  //thread番号が存在しない場合、前回「読了」としたthread番号を読み込む
 $button = filter_input(INPUT_GET, "button");    //削除ボタン、読了ボタンのいずれか
@@ -15,6 +17,7 @@ if (isset($num)) {
     if ($button === "del") {    //削除ボタンを押した場合
         echo $num . "を削除しました";
         file_put_contents("./del.txt", $name, FILE_APPEND); //非表示にしたいidを保存する
+        file_put_contents("./del.txt", $ipadress, FILE_APPEND); //非表示にしたいipを保存する
     } elseif ($button === "over") { //読了ボタンを押した場合
         file_put_contents("last.txt", $num);    //thread番号をlast.txtに保存する
         echo $num . 'まで読んだ';
@@ -27,7 +30,7 @@ echo "<br> \n";
 // htmlを読み込む
 $file = fopen("./sanf.html", "r");
 $i = 1;
-$thread_line_num= 1452;    //$thread_line_numは、htmlの中で、threadが書き込まれている行。
+$thread_line_num= 1453;    //$thread_line_numは、htmlの中で、threadが書き込まれている行。
 while ($i <= $thread_line_num) { //!feof($file)と同じ（falseの間続けますよ）の意味
     // while (feof($file) === false) { //!feof($file)と同じ（falseの間続けますよ）の意味
     $line = trim(fgets($file));
@@ -55,6 +58,7 @@ $j = 2;
 $num_jump = 1;  //ボタンを押した後のジャンプ先、初期値設定
 $thread[1] = "";
 $id[1] = "";
+$ip[1] = "";
 foreach ($data as $value) { //$data[2] thread idが2。$dataのexplodeで一行多くなる。
     // echo $j. '<br>'; echo htmlspecialchars($value). '<br>';
 
@@ -64,6 +68,10 @@ foreach ($data as $value) { //$data[2] thread idが2。$dataのexplodeで一行�
         $id[$j] = mb_strstr($id[$j], '"ID:', false);  // 指定文字後の部分の文字列を抜き出す
         $id[$j] = mb_substr($id[$j], 4);     //idを抽出する。これが最終id
         // echo htmlspecialchars($id[$j]); echo '<br>'; echo '<br>';
+        $ip[$j] = mb_strstr($value, ']', true);     // 指定文字前の部分の文字列を抜き出す
+        $ip[$j] = mb_strstr($ip[$j], '[', false);  // 指定文字後の部分の文字列を抜き出す
+        $ip[$j] = mb_substr($ip[$j], 1);     //ipを抽出する。これが最終ip
+        // echo htmlspecialchars($ip[$j]); echo '<br>'; echo '<br>';
 
         $thread[$j] = mb_strstr($value, 'post-content">', false);  // 指定文字後の部分の文字列を抜き出す
         $thread[$j] = mb_substr($thread[$j], 15);    //指定文字数以降のthreadを抽出する
@@ -74,11 +82,11 @@ foreach ($data as $value) { //$data[2] thread idが2。$dataのexplodeで一行�
         // echo $j, $id[$j], $thread[$j]; echo '<br>';
 
         //threadをNG id,重複threadを除き表示する
-        $ng_name = file("./del.txt");  //NG IDを読み込む
-        foreach ($ng_name as $row) {   //このIDがNGかどうか確認する。まずNG IDを配列にする
+        $ng_name = file("./del.txt");  //NG ID, NG IPを読み込む
+        foreach ($ng_name as $row) {   //このID,IPがNGかどうか確認する。まずNG ID, NG IPを配列にする
             $row = trim($row);
-            if ($id[$j] === $row) {     //NG IDと一致するか、または重複threadの場合
-                $del_sw[$j] = 1;        //NG IDと一致した場合、$del_swを1にし、表示不可とする。
+            if ($id[$j] === $row || $ip[$j] === $row) {     //NG ID, NG IPと一致するか
+                $del_sw[$j] = 1;        //NG ID, NG IPと一致した場合、$del_swを1にし、表示不可とする。
             }
         }
         if ($thread[$j] === $thread[$j-1])  {     //重複threadの場合
@@ -118,6 +126,7 @@ for ($j=2; $j<=$jmax; ++$j){
                 echo '<a id="' . $j . '">' . $j . '</a>';   //誤記に見えて意味がある。この番号のスレにジャンプするために使用。
                 echo '<form action="index.php#" method="get">';     //ボタンを押したら、index.php#にジャンプする。
                 echo '<input type="text" name="name" value="' . $id[$j] . '" style="border:none;">';    //スレッド記入者id
+                echo '<input type="text" name="ip" value="' . $ip[$j] . '" style="border:none;">';    //スレッド記入者ip
                 echo '<input type="hidden" name="num" value="' . $j . '">';                             //スレッド番号
                 echo '<button type="submit" name="button" value="del" style="background-color:white; border:solid gray 1px;border-radius:50%;">削除</button>';  //削除ボタン
                 echo '<button type="submit" name="button" value="over" style="background-color:white; border:solid gray 1px;border-radius:50%;">読了</button>';    //読了ボタン
