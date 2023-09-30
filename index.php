@@ -30,7 +30,7 @@ echo "<br> \n";
 // htmlを読み込む
 $file = fopen("./sanf.html", "r");
 $i = 1;
-$thread_line_num= 1453;    //$thread_line_numは、htmlの中で、threadが書き込まれている行。
+$thread_line_num= 1390;    //$thread_line_numは、htmlの中で、threadが書き込まれている行。
 while ($i <= $thread_line_num) { //!feof($file)と同じ（falseの間続けますよ）の意味
     // while (feof($file) === false) { //!feof($file)と同じ（falseの間続けますよ）の意味
     $line = trim(fgets($file));
