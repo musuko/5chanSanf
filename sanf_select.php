@@ -44,19 +44,24 @@
 // // curl_close($ch);
 //     }
 
-    $top = "https://kizuna.5ch.net/test/read.cgi/soccer/"; //    左のurlにスレ番号,ファイル名を追加すると、スレッドが表示される。
+    $top = "https://kizuna.5ch.net/test/read.cgi/soccer/"; //    左のurlにタイトル番号を追加すると、スレッドが表示される。
 
     $file = fopen("https://kizuna.5ch.net/soccer/subback.html", "r");
     while (feof($file) === false) { //!feof($file)と同じ（falseの間続けますよ）の意味
         $line = trim(fgets($file));
         $line = mb_convert_encoding($line, "utf-8", "sjis"); // シフトJISからUTF-8に変換
-        $line = htmlspecialchars($line, ENT_QUOTES, 'UTF-8');
         if (strstr($line, "サンフレッチェ広島")) {  //サンフレッチェ広島という文字がある場合、
-
-        $num = mb_substr($line, 17, 11);   //サンフレッチェ広島の文字がある行から、スレ番号のみ抽出
+            $title = mb_substr($line, 25);       //指定文字数を先頭から取り除く
+            $title = mb_strstr($title, '</a>', true);   // 指定文字より前の部分の文字列を抜き出す
+            // echo ($title);  echo "<br>";
+            $line = htmlspecialchars($line, ENT_QUOTES, 'UTF-8');   // タイトル番号を抽出するため、html文字を分解する
+            // echo ($line);  echo "<br>";
+            $num = mb_substr($line, 17, 11);   //サンフレッチェ広島の文字があるhtml文字列から、タイトル番号のみ抽出
 // var_dump($top.$num);  echo "<br>";
             // echo '<form method ="post">';
-            echo '<p><a href="'.$top.$num.'" style="width:900px; size=80; font-family:メイリオ; font-size: 20px;"> ' . $line . '</a></p>';
+            echo '<a href="'.$top.$num.'" style="width:900px; size=80; font-family:メイリオ; font-size: 20px;"> ' . $title . '</a>';
+            echo "<br>";
+            // echo '<p><a href="'.$top.$num.'" style="width:900px; size=80; font-family:メイリオ; font-size: 20px;"> ' . $line . '</a></p>';
 
             // echo '<input type="text" name="list" style="width:900px; size=80; font-family:メイリオ; font-size: 20px;" 
             // value="' . $line . '" >';
