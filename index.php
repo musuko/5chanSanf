@@ -30,7 +30,7 @@ echo "<br> \n";
 // htmlを読み込む
 $file = fopen("./sanf.html", "r");
 $i = 1;
-$thread_line_num= 1390;    //$thread_line_numは、htmlの中で、threadが書き込まれている行。
+$thread_line_num= 1384;    //$thread_line_numは、htmlの中で、threadが書き込まれている行。
 while ($i <= $thread_line_num) { //!feof($file)と同じ（falseの間続けますよ）の意味
     // while (feof($file) === false) { //!feof($file)と同じ（falseの間続けますよ）の意味
     $line = trim(fgets($file));
@@ -62,7 +62,7 @@ $ip[1] = "";
 foreach ($data as $value) { //$data[2] thread idが2。$dataのexplodeで一行多くなる。
     // echo $j. '<br>'; echo htmlspecialchars($value). '<br>';
 
-    $del_sw[$j] = 0;    // 0: NG IDではない 1:NG IDである
+    $del_sw[$j] = 0;    // 0: NG IDではない 1:NG ID, NG IPである。または重複。
     if ($j < 1002) {
         $id[$j] = mb_strstr($value, '" data-id="', true);     // 指定文字前の部分の文字列を抜き出す
         $id[$j] = mb_strstr($id[$j], '"ID:', false);  // 指定文字後の部分の文字列を抜き出す
@@ -90,6 +90,9 @@ foreach ($data as $value) { //$data[2] thread idが2。$dataのexplodeで一行�
             }
         }
         if ($thread[$j] === $thread[$j-1])  {     //重複threadの場合
+            $del_sw[$j] = 1;        //$del_swを1にし、表示不可とする。
+        }
+        if (mb_strpos($thread[$j],"たろわ")!==false)  {     //"たろわ"を含む場合。含んでいても0を返すことがあるので、!==とする。
             $del_sw[$j] = 1;        //$del_swを1にし、表示不可とする。
         }
         if ($del_sw[$j] !== 1 && $j <= $num) {    //表示可能かつ削除ボタンを押したthread番号以下の場合
