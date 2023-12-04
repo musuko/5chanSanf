@@ -108,10 +108,16 @@ foreach ($data as $value) { //$data[2] thread idが2。$dataのexplodeで一行�
 
 //ジャンプする先をリンクで表示する。ただし、$numが1より大きい場合。
 if ($num > 1) {
-    echo '<a href="#' . ($num_jump) . '">ID = #' . ($num_jump) . 'へジャンプ</a>';
+    echo '<a class="top" href="#' . ($num_jump) . '">ID = #' . ($num_jump) . 'へジャンプ</a>';
     echo "<br> \n";
 }
+//削除ボタンを押した場合、直前の表示スレに自動でジャンプする。
+if ($button === "del") {
+    header ("location: index.php#".$num_jump);
+}
 
+echo '<style> .top {font-family:メイリオ; position: relative; left: 20%;} </style>';
+echo '<style> .thread {font-family:メイリオ; font-size: 20px; background: azure; position: relative; left: 20%; width: 50%;} </style>';
 
 //NGと重複を除いたthreadを表示する
 // $thread[0] = "";
@@ -124,21 +130,19 @@ for ($j=2; $j<=$jmax; ++$j){
                         $thread[$j] = str_replace($pick, "index.php#", $thread[$j]);   // $thread[$j]内の$pickをindex.php#に置き換える
                     }
 
+
+
 //実際に表示するthread                
                 // echo  $j;
-                echo '<a id="' . $j . '">' . $j . '</a>';   //誤記に見えて意味がある。この番号のスレにジャンプするために使用。
-                echo '<form action="index.php#" method="get">';     //ボタンを押したら、index.php#にジャンプする。
+                echo '<a class="top" id="' . $j . '">' . $j . '</a>';   //誤記に見えて意味がある。この番号のスレにジャンプするために使用。
+                echo '<form class="top" action="index.php#" method="get">';     //ボタンを押したら、index.php#にジャンプする。
                 echo '<input type="text" name="name" value="' . $id[$j] . '" style="border:none;">';    //スレッド記入者id
                 echo '<input type="text" name="ip" value="' . $ip[$j] . '" style="border:none;">';    //スレッド記入者ip
                 echo '<input type="hidden" name="num" value="' . $j . '">';                             //スレッド番号
                 echo '<button type="submit" name="button" value="del" style="background-color:white; border:solid gray 1px;border-radius:50%;">削除</button>';  //削除ボタン
                 echo '<button type="submit" name="button" value="over" style="background-color:white; border:solid gray 1px;border-radius:50%;">読了</button>';    //読了ボタン
                 echo '</form>';
-
-                echo '<p style=" font-family:メイリオ; font-size: 20px; background: azure";>' . $thread[$j] . '</p>';
+                echo '<p class="thread">' . $thread[$j] . '</p>';
                 echo "\n";
             }
-        
-    
-
 }
