@@ -1,33 +1,30 @@
 <?php
 session_start();
-$no_get = !isset($_GET['button']) && !isset($_GET['idno']);  //起動直後、ボタンが押されていない。
 
-if (isset($_GET['button'])) {
+if (isset($_GET['button'])) {    //削除ボタン、読了ボタンが押された場合
+    $button = true;
     if ($_GET['button'] === 'del') {
-        $del_button = true;   //読了ボタンが押された場合
-    } else {
+        $del_button = true;   //削除ボタンが押された場合
+        $over_button = false;
+    } else if ($_GET['button'] === 'over') {    //読了ボタンが押された場合
         $del_button = false;
+        $over_button = true;
     }
-} else {
+} else {                //削除ボタン、読了ボタンが押されていない場合
+    $button = false;
     $del_button = false;
+    $over_button = false;
 }
-
-if (isset($_GET['idno'])) {   //GET['idno']がtrueの場合
-    $idno = $_SESSION['idno'] = $_GET['idno'];   //$_GET['idno']を与える
-} elseif ($no_get) {   //起動直後
-    $idno = $_SESSION['idno'] = 0;      //とりあえず、0番目のスレッドを指定する
-} else {  //削除や読了ボタンが押され、GET['idno']がfalseになった場合
-    $idno = $_SESSION['idno'];
-}
-$url = $_SESSION['number'][$idno];
 
 // 国内サッカーのタイトル一覧から、サンフレッチェ広島を含むタイトルをリンクで表示する。
 require "sanf_select.php";
 
+$_SESSION['txt'] = $html;          //html文 text
+
 //タイトル一覧の次に、thread番号と、削除ボタンや読了ボタンを押したことを出力する
-$name = filter_input(INPUT_GET, "name");    //id
+$name = filter_input(INPUT_GET, "name");    //投稿者のid
 $name = isset($name) ? $name . "\n" : "";   //id表示後、改行する。起動直後、nameが存在しないので、""を定義しておく。
-$ipadress = filter_input(INPUT_GET, "ip");    //ip
+$ipadress = filter_input(INPUT_GET, "ip");    //投稿者のip
 $ipadress = isset($ipadress) ? $ipadress . "\n" : "";   //ip表示後、改行する。起動直後、ipが存在しないので、""を定義しておく。
 $num = filter_input(INPUT_GET, "num");  //threadの番号(前回の読了番号、今回の読了番号、削除番号)
 $num = isset($num) ? $num : file_get_contents('last.txt');  //thread番号が存在しない場合、前回「読了」としたthread番号を読み込む
@@ -39,22 +36,19 @@ if (isset($num)) {
         file_put_contents("./del.txt", $name, FILE_APPEND); //非表示にしたいidを保存する
         file_put_contents("./del.txt", $ipadress, FILE_APPEND); //非表示にしたいipを保存する
         file_put_contents("last.txt", $num);    //thread番号をlast.txtに保存する
-    } elseif ($button === "over") { //読了ボタンを押した場合
+    } elseif ($over_button) { //読了ボタンを押した場合
         file_put_contents("last.txt", $num);    //thread番号をlast.txtに保存する
         echo $num . 'まで読んだ';
         $name = "";
     }
 }
 echo "<br> \n";
-
 // htmlを読み込む 
-$file = $_SESSION['txt'][$idno];
-$html_line = explode("\n", $file);
+$html_line = explode("\n", $_SESSION['txt']);
 $thread_line_num = 1384;    //$thread_line_numは、htmlの中で、threadが書き込まれている行。
-// echo $html_line[$thread_line_num - 1];
 $html_line[$thread_line_num - 1] = mb_convert_encoding($html_line[$thread_line_num - 1], "utf-8", "sjis"); // シフトJISからUTF-8に変換
+// echo $html_line[$thread_line_num - 1];
 //thread行の不要部分を取り除く
-
 $thread_line = mb_strstr($html_line[$thread_line_num - 1], '});</script>', false);   // 指定文字より後の部分の文字列を抜き出す
 $thread_line = mb_substr($thread_line, 12);       //指定文字数を先頭から取り除く
 $thread_line = mb_strstr($thread_line, '<div class="navmenu">', true);   // 指定文字より前の部分の文字列を抜き出す
@@ -124,12 +118,12 @@ if ($num > 1) {
     echo "<br> \n";
 }
 //削除ボタンを押した場合、直前の表示スレに自動でジャンプする。
-// if ($button === "del") {
-//     header("location: index.php#" . $num_jump);
-// }
+if ($button === "del") {
+    header("location: index.php#" . $num_jump);
+}
 
 echo '<style> .top {font-family:メイリオ; position: relative; left: 20%;} </style>';
-echo '<style> .thread {font-family:メイリオ; font-size: 18px; background: azure; position: relative; left: 20%; width: 50%;} </style>';
+echo '<style> .thread {font-family:メイリオ; font-size: 18px; background: azure; position: relative; left: 20%; width: 70%;} </style>';
 
 //NGと重複を除いたthreadを表示する
 for ($j = 2; $j <= $jmax; ++$j) {
