@@ -2,7 +2,7 @@
 session_start();
 
 if (isset($_GET['button'])) {    //削除ボタン、読了ボタンが押された場合
-    $button = true;
+    $button = $_GET['button'];
     if ($_GET['button'] === 'del') {
         $del_button = true;   //削除ボタンが押された場合
         $over_button = false;
@@ -11,38 +11,87 @@ if (isset($_GET['button'])) {    //削除ボタン、読了ボタンが押され
         $over_button = true;
     }
 } else {                //削除ボタン、読了ボタンが押されていない場合
-    $button = false;
+    $button = "";
     $del_button = false;
     $over_button = false;
 }
-
-// 国内サッカーのタイトル一覧から、サンフレッチェ広島を含むタイトルをリンクで表示する。
-require "sanf_select.php";
-
-$_SESSION['txt'] = $html;          //html文 text
 
 //タイトル一覧の次に、thread番号と、削除ボタンや読了ボタンを押したことを出力する
 $name = filter_input(INPUT_GET, "name");    //投稿者のid
 $name = isset($name) ? $name . "\n" : "";   //id表示後、改行する。起動直後、nameが存在しないので、""を定義しておく。
 $ipadress = filter_input(INPUT_GET, "ip");    //投稿者のip
 $ipadress = isset($ipadress) ? $ipadress . "\n" : "";   //ip表示後、改行する。起動直後、ipが存在しないので、""を定義しておく。
-$num = filter_input(INPUT_GET, "num");  //threadの番号(前回の読了番号、今回の読了番号、削除番号)
-$num = isset($num) ? $num : file_get_contents('last.txt');  //thread番号が存在しない場合、前回「読了」としたthread番号を読み込む
-$button = filter_input(INPUT_GET, "button");    //削除ボタン、読了ボタンのいずれか
+//threadの番号
+$num = filter_input(INPUT_GET, "num");      //スレッド番号
+isset($_SESSION["num"]) ? $_SESSION["num"]: $_SESSION["num"] = 1;
+isset($num) ? $_SESSION["num"] = $num: $num = $_SESSION["num"];
+
+//タイトル番号
+$number = filter_input(INPUT_GET, "number");    //タイトル番号
+isset($_SESSION["number"]) ? $_SESSION["number"]: $_SESSION["number"] = 0;
+isset($number) ? $_SESSION["number"] = $number : $number = $_SESSION["number"];
+
+//0: last.txtにデータを新設, 1:データを追加, 2:データを入れ替え, -1:何もしない
+$add = -1;
+$last_nullcheck = (file_get_contents("./last.txt"))? 0 : 1;
+
+if (!$last_nullcheck) {         //last.txtにデータがある場合
+    $num_row_array = file('./last.txt', FILE_IGNORE_NEW_LINES);
+
+    foreach ($num_row_array as $num_row) {
+        $num_column_array = explode(',', $num_row);
+        if ($num_column_array[0] === $_SESSION["number"]) {
+            if ($num_column_array[1] === $num) {
+                $add = -1;   //何もしない
+            } else {
+                $add = 2;   //書き換え
+            }
+            break; //ループ終了
+        } else {
+            $add = 1;
+        }
+    }
+} elseif ($_SESSION["number"] === 0) {  //セッションに無い。last.txtにデータがない場合
+    $add = -1;
+} else {  //last.txtにデータがない場合
+    $add = 0;
+}
+
+// 国内サッカーのタイトル一覧から、サンフレッチェ広島を含むタイトルをリンクで表示する。
+require "sanf_select.php";
 
 if (isset($num)) {
     if ($del_button) {    //削除ボタンを押した場合
         echo $num . "を削除しました";
         file_put_contents("./del.txt", $name, FILE_APPEND); //非表示にしたいidを保存する
         file_put_contents("./del.txt", $ipadress, FILE_APPEND); //非表示にしたいipを保存する
-        file_put_contents("last.txt", $num);    //thread番号をlast.txtに保存する
     } elseif ($over_button) { //読了ボタンを押した場合
-        file_put_contents("last.txt", $num);    //thread番号をlast.txtに保存する
         echo $num . 'まで読んだ';
         $name = "";
     }
+    // last.txtに書き込む
+    $last = $_SESSION["number"] . "," . $num . "\n";
+    $filename = './last.txt';
+
+    if ($add === 0) {   //0: last.txtにデータを新設, 1:データを追加, 2:データを入れ替え, -1:何もしない
+        file_put_contents($filename, $last);    //thread番号をlast.txtに保存する
+    } elseif ($add === 1) {
+        file_put_contents($filename, $last, FILE_APPEND);    //thread番号をlast.txtに保存する
+    } elseif ($add === 2) {
+        $num_row_array = file('./last.txt', FILE_IGNORE_NEW_LINES);
+        file_put_contents($filename, "");   //空にする
+        foreach ($num_row_array as $num_row) {
+            $num_column_array = explode(',', $num_row);
+            if ($num_column_array[0] === $_SESSION['number']) {
+                $num_column_array[1] = $num;
+            }
+            file_put_contents($filename, $num_column_array[0] . "," . $num_column_array[1] . "\n", FILE_APPEND);
+        }
+    }
 }
 echo "<br> \n";
+
+$_SESSION['txt'] = $html;          //html文 text
 // htmlを読み込む 
 $html_line = explode("\n", $_SESSION['txt']);
 $thread_line_num = 1384;    //$thread_line_numは、htmlの中で、threadが書き込まれている行。
@@ -79,11 +128,11 @@ foreach ($data as $value) { //$data[2] thread idが2。$dataのexplodeで一行�
         $ip[$j] = mb_strstr($value, ']', true);     // 指定文字前の部分の文字列を抜き出す
         $ip[$j] = mb_strstr($ip[$j], '[', false);  // 指定文字後の部分の文字列を抜き出す
         $ip[$j] = mb_substr($ip[$j], 1);     //1文字以降を抽出する。これが最終ip
-        
+
         $datetime[$j] = mb_strstr($value, 'class="date">', false);  // 指定文字後の部分の文字列を抜き出す
         $datetime[$j] = mb_strstr($datetime[$j], '</span>', true);     // 指定文字前の部分の文字列を抜き出す
         $datetime[$j] = mb_substr($datetime[$j], 13);         //13文字以降を抽出する
-        $datetime[$j] = mb_substr($datetime[$j], 0,19);         //19文字までを抽出する
+        $datetime[$j] = mb_substr($datetime[$j], 0, 19);         //19文字までを抽出する
 
         $thread[$j] = mb_strstr($value, 'post-content">', false);  // 指定文字後の部分の文字列を抜き出す
         $thread[$j] = mb_substr($thread[$j], 15);    //指定文字数以降のthreadを抽出する
@@ -118,7 +167,7 @@ if ($num > 1) {
     echo "<br> \n";
 }
 //削除ボタンを押した場合、直前の表示スレに自動でジャンプする。
-if ($button === "del") {
+if ($del_button) {
     header("location: index.php#" . $num_jump);
 }
 
