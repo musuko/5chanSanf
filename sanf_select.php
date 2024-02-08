@@ -14,10 +14,10 @@ while (feof($file) === false) { //!feof($file)と同じ（falseの間続けま�
         $title[$i] = mb_strstr($title[$i], '&lt;/a&gt;', true);   // 指定文字より前の部分の文字列を抜き出す
         $title_number[$i] = mb_substr($line[$i], 17, 10);   //タイトル番号のみ、サンフレッチェ広島の文字があるhtml文字列から抽出。特殊文字に注意 < と　"
 
-        echo '<br>';
+        echo '<div style="width:700px; margin:2% 0; background-color: azure;">';
         //タイトル番号
-        echo '<a href="index.php?number=' . $title_number[$i] . '" style="width:900px; size=80; font-family:メイリオ; font-size: 20px;"> ' . $title[$i] . '</a>';
-        echo "<br>";
+        echo '<a href="index.php?number=' . $title_number[$i] . '" style="font-family:メイリオ; font-size: 18px; margin:0 0 0 10%;"> ' . $title[$i] . '</a>';
+        echo '</div>';
         $i++;
     }
 }
@@ -26,11 +26,11 @@ fclose($file);
 // $_SESSION['number'][$i]:   タイトル番号
 // $_SESSION['num']:   スレッド番号
 // $num: スレッド番号
-if (isset($_SESSION['number'])) {
-    if (($_SESSION['number']) === 0) {
-        $_SESSION['number'] = $title_number[1];
-    }
+
+if (!isset($number)) {
+    $number = $_SESSION['number'] = $title_number[1];
 }
+
 
 // リンク先のHTMLを保存するためのコード
 $ch = curl_init();
