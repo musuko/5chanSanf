@@ -1,9 +1,9 @@
 <!-- 国内サッカーのタイトル一覧から、サンフレッチェ広島を含むタイトルをリンクで表示する。 -->
 
 <?php
-$top = "https://kizuna.5ch.net/test/read.cgi/soccer/"; //    左のurlにタイトル番号を追加すると、スレッドが表示される。
+$top = "https://ikura.2ch.sc/test/read.cgi/soccer/"; //    左のurlにタイトル番号を追加すると、スレッドが表示される。
 
-$file = fopen("https://kizuna.5ch.net/soccer/subback.html", "r");   //タイトル一覧表示
+$file = fopen("https://ikura.2ch.sc/soccer/subback.html", "r");   //タイトル一覧表示
 $i = 1;
 while (feof($file) === false) { //!feof($file)と同じ（falseの間続けますよ）の意味
     $line[$i] = trim(fgets($file));
@@ -30,13 +30,25 @@ fclose($file);
 if (!isset($number)) {
     $number = $_SESSION['number'] = $title_number[1];
 }
-
+// var_dump($number);
+// var_dump($top . $_SESSION['number']);
 
 // リンク先のHTMLを保存するためのコード
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, $top . $_SESSION['number']);   //html文読み込み
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-$html = curl_exec($ch);          //html文
-curl_close($ch);
+// $ch = curl_init();
+// curl_setopt($ch, CURLOPT_URL, $top . $_SESSION['number']);   //html文読み込み
+// curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);  //レスポンスを表示するか
+// curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);  //"Location: " ヘッダの内容をたどる
+// $html = curl_exec($ch);          //html文
+// curl_close($ch);
+
+
+$url = $top . $_SESSION['number'];
+$html = file_get_contents($url);
+
+if ($html === false) {
+    echo "Failed to retrieve content from the URL.";
+}
+// echo $url;
+
 // file_put_contents($title_number[$i] . '.html', $html[$i]);
 ?>
