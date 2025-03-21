@@ -1,7 +1,7 @@
 <?php
 session_start();
 $top = "https://ikura.2ch.sc/test/read.cgi/soccer/"; //    左のurlにタイトル番号を追加すると、スレッドが表示される。
-$title_number = "1733041337";
+$title_number = "1742171246";
 $url = $top . $title_number;
 
 $thread_line_num = 24;    //$thread_line_numは、htmlの中で、threadが書き込まれている行。
@@ -17,6 +17,8 @@ if (isset($_GET['button'])) {    //削除ボタン、読了ボタンが押され
     } else if ($_GET['button'] === 'over') {    //読了ボタンが押された場合
         $del_button = false;
         $over_button = true;
+        $_SESSION = [];
+        session_destroy();
     }
 } else {                //削除ボタン、読了ボタンが押されていない場合
     $button = "";
@@ -24,78 +26,61 @@ if (isset($_GET['button'])) {    //削除ボタン、読了ボタンが押され
     $over_button = false;
 }
 
-//タイトル一覧の次に、thread番号と、削除ボタンや読了ボタンを押したことを出力する
-$name = filter_input(INPUT_GET, "name");    //投稿者のname
-//起動直後
-$name = isset($name) ? $name . "\n" : "";
+//削除または読了ボタンを押したときの、thread番号と、記入者とそのipアドレス。
+$num = isset($_GET["num"]) ? filter_input(INPUT_GET, "num") : NULL;
+$name = isset($_GET["name"]) ? filter_input(INPUT_GET, "name") . "\n" : "";
+$ipadress = isset($_GET["ip"]) ? filter_input(INPUT_GET, "ip") . "\n" : NULL;
 
-$ipadress = filter_input(INPUT_GET, "ip");    //投稿者のip
-$ipadress = isset($ipadress) ? $ipadress . "\n" : NULL;   //ip表示後、改行する。起動直後、ipが存在しないので、""を定義しておく。
-
-
-//タイトル番号
-$number = filter_input(INPUT_GET, "number");    //タイトル番号
-if (isset($number)) {
-    $_SESSION["number"] = $number;
-} elseif (isset($_SESSION["number"])) {
-    $number = $_SESSION["number"];
-}
-//threadの番号
-$num = filter_input(INPUT_GET, "num");      //ボタンを押したスレッド番号
-
-// 国内サッカーのタイトル一覧から、サンフレッチェ広島を含むタイトルをリンクで表示する。
-// $_GET['number'], $_SESSION['number], $htmlが返ってくる
+//スレッド一覧読み込み
 $html = file_get_contents($url);
-
 if ($html === false) {
     echo "Failed to retrieve content from the URL.";
 }
 
-
-//0: last.txtにデータを新設, 1:データを追加, 2:データを入れ替え, -1:何もしない
+//$add  0: last.txtにデータを新設, 1:データを追加, 2:データを入れ替え, -1:何もしない
 $add = -1;  // -1:何もしない　初期値
 $equal_sw = 0;  // 初期値
+//$last_nullcheck 0: $lastが存在、1:無し
 $last_nullcheck = (file_get_contents("./last.txt")) ? 0 : 1;
 if (!$last_nullcheck) {         //last.txtにデータがある場合
-    $num_row_array = file('./last.txt', FILE_IGNORE_NEW_LINES);
+    $num_row_array = file('./last.txt', FILE_IGNORE_NEW_LINES); //配列 タイトル番号と読了番号
 
-    foreach ($num_row_array as $num_row) {
-        $num_column_array = explode(',', $num_row);
-        if ($num_column_array[0] === $_SESSION["number"]) {
-            $equal_sw = 1;      //データを追加
-            if (!isset($num)) {     //$numが未設定の場合
-                $num = $num_column_array[1];
-                $add = -1;      //-1:何もしない
-            } else {
-                $add = 2;   //書き換え
-            }
+    foreach ($num_row_array as $num_row) {  //配列を各行に分解
+        $num_column_array = explode(',', $num_row); //各行を、タイトル番号と読了番号の配列に
+        if ($num_column_array[0] === $title_number) {   //タイトル番号と一致する場合
+            $equal_sw = 1;      //タイトル番号と一致する番号がlist.txtに有りフラグ。
         }
     }
-
-    if ($equal_sw === 0) {
+    if ($equal_sw === 1) {
+        if (!isset($num)) {     //$numが未設定の場合
+            $num = $num_column_array[1];
+            $add = -1;      //-1:何もしない
+        } else {
+            $add = 2;   //書き換え
+        }
+    } else {
         if (!isset($num)) {     //$numが未設定の場合
             $num = 1;   //先頭行
+            $add = 1;   //追加
         }
-        $add = 1;   //追加
     }
 } else {  //last.txtにデータがない場合
     $num = 1;
     $add = 0;   //新設
 }
 
-
+//thread番号と、削除ボタンや読了ボタンを押したことを表示する
+//削除または読了ボタンを押したときの、thread番号と、記入者とそのipアドレスをdel.txtに書き込む
 if ($del_button) {    //削除ボタンを押した場合
     echo '<p>' . $num . 'を削除しました</p>';
     file_put_contents("./del.txt", $name, FILE_APPEND); //非表示にしたいnameを保存する
-    // isset($ipadress) ? file_put_contents("./del.txt", $ipadress, FILE_APPEND) : ""; //非表示にしたいipを保存する
-} elseif ($over_button) { //読了ボタンを押した場合
+    file_put_contents("./del.txt", $ipaddress, FILE_APPEND); //非表示にしたいipaddressを保存する
     echo '<p>' . $num . 'まで読んだ</p>';
 }
 
 // last.txtに読了番号を書き込む
-$last = $number . "," . $num . "\n";    //タイトル番号,ボタンを押したスレッド番号
+$last = $title_number . "," . $num . "\n";    //タイトル番号,ボタンを押したスレッド番号
 $filename = './last.txt';
-
 if ($add === 0) {   //0: last.txtにデータを新設, 1:データを追加, 2:データを入れ替え, -1:何もしない
     file_put_contents($filename, $last);    //thread番号をlast.txtに保存する
 } elseif ($add === 1) {
@@ -105,7 +90,7 @@ if ($add === 0) {   //0: last.txtにデータを新設, 1:データを追加, 2:
     file_put_contents($filename, "");   //空にする
     foreach ($num_row_array as $num_row) {
         $num_column_array = explode(',', $num_row);
-        if ($num_column_array[0] === $_SESSION['number']) {
+        if ($num_column_array[0] === $title_number) {
             $num_column_array[1] = $num;    //タイトル番号と一致する場合、スレッド番号を変更する
         }
         file_put_contents($filename, $num_column_array[0] . "," . $num_column_array[1] . "\n", FILE_APPEND);    //空にしたファイルに書き直す
